@@ -1,66 +1,43 @@
-const express = require('express');
+// dependencies
+const express = require("express");
 const router = express.Router();
-const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');
-const path = require('path');
+const uuid = require("uuid");
+// brings in the DB class object
+const db = require('./api-routes');
 
-// Path to the JSON file where notes are stored
-const notesFilePath = path.join(__dirname, '../db', 'notes.json');
-
-// Route to get all notes
-router.get('/notes', (req, res) => {
-    try {
-        const notesData = fs.readFileSync(notesFilePath, 'utf8');
-        const notes = JSON.parse(notesData);
-        res.json(notes);
-    } catch (err) {
-        console.error('Error reading notes file:', err);
-        res.status(500).json({ error: 'Failed to read notes' });
-    }
+// route to get notes
+router.get("/api/notes", async function (req, res) {
+  const notes = await DB.readNotes();
+  return res.json(notes);
 });
 
-// Route to add a new note
-router.post('/notes', (req, res) => {
-    const { title, text } = req.body;
+// route to add a new note and add it to the json file
+router.post("/api/notes", async function (req, res) {
+  const currentNotes = await DB.readNotes();
+  let newNote = {
+    id: uuid(),
+    title: req.body.title,
+    text: req.body.text,
+  };
 
-    if (!title || !text) {
-        return res.status(400).json({ error: 'Title and text are required' });
-    }
+  await DB.addNote([...currentNotes, newNote]);
 
-    const newNote = {
-        id: uuidv4(),
-        title,
-        text
-    };
-
-    try {
-        const notesData = fs.readFileSync(notesFilePath, 'utf8');
-        const notes = JSON.parse(notesData);
-        notes.push(newNote);
-        fs.writeFileSync(notesFilePath, JSON.stringify(notes, null, 2));
-        res.json(newNote);
-    } catch (err) {
-        console.error('Error writing to notes file:', err);
-        res.status(500).json({ error: 'Failed to save note' });
-    }
+  return res.send(newNote);
 });
 
-// Route to delete a note by ID
-router.delete('/notes/:id', (req, res) => {
-    const noteId = req.params.id;
+// // route to delete notes
+router.delete("/api/notes/:id", async function (req, res) {
+  // separates out the note to delete based on id
+  const noteToDelete = req.params.id;
+  // notes already in json file
+  const currentNotes = await DB.readNotes();
+  // sort through notes file and create a new array minus the note in question
+  const newNoteData = currentNotes.filter((note) => note.id !== noteToDelete);
 
-    try {
-        let notesData = fs.readFileSync(notesFilePath, 'utf8');
-        let notes = JSON.parse(notesData);
-
-        const updatedNotes = notes.filter((note) => note.id !== noteId);
-
-        fs.writeFileSync(notesFilePath, JSON.stringify(updatedNotes, null, 2));
-        res.json({ message: 'Note deleted successfully' });
-    } catch (err) {
-        console.error('Error deleting note:', err);
-        res.status(500).json({ error: 'Failed to delete note' });
-    }
+  // sends the new array back the DB class 
+  await DB.deleteNote(newNoteData);
+  
+  return res.send(newNoteData);
 });
 
 module.exports = router;
