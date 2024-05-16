@@ -1,43 +1,53 @@
-// dependencies
 const express = require("express");
 const router = express.Router();
 const uuid = require("uuid");
-// brings in the DB class object
-const db = require('./api-routes');
+// Assuming DB module handles note operations
+const DB = require('./api-routes'); // Make sure to define and export DB methods
 
-// route to get notes
+// Route to get all notes
 router.get("/api/notes", async function (req, res) {
-  const notes = await DB.readNotes();
-  return res.json(notes);
+  try {
+    const notes = await DB.readNotes();
+    return res.json(notes);
+  } catch (error) {
+    console.error("Error fetching notes:", error);
+    return res.status(500).json({ error: "Failed to fetch notes" });
+  }
 });
 
-// route to add a new note and add it to the json file
+// Route to add a new note
 router.post("/api/notes", async function (req, res) {
-  const currentNotes = await DB.readNotes();
-  let newNote = {
-    id: uuid(),
-    title: req.body.title,
-    text: req.body.text,
-  };
+  try {
+    const currentNotes = await DB.readNotes();
+    const newNote = {
+      id: uuid(),
+      title: req.body.title,
+      text: req.body.text,
+    };
 
-  await DB.addNote([...currentNotes, newNote]);
+    await DB.addNote([...currentNotes, newNote]);
 
-  return res.send(newNote);
+    return res.status(201).json(newNote); // Send the new note with a 201 Created status
+  } catch (error) {
+    console.error("Error adding new note:", error);
+    return res.status(500).json({ error: "Failed to add new note" });
+  }
 });
 
-// // route to delete notes
+// Route to delete a note by ID
 router.delete("/api/notes/:id", async function (req, res) {
-  // separates out the note to delete based on id
-  const noteToDelete = req.params.id;
-  // notes already in json file
-  const currentNotes = await DB.readNotes();
-  // sort through notes file and create a new array minus the note in question
-  const newNoteData = currentNotes.filter((note) => note.id !== noteToDelete);
+  try {
+    const noteToDelete = req.params.id;
+    const currentNotes = await DB.readNotes();
+    const newNoteData = currentNotes.filter((note) => note.id !== noteToDelete);
 
-  // sends the new array back the DB class 
-  await DB.deleteNote(newNoteData);
-  
-  return res.send(newNoteData);
+    await DB.deleteNote(newNoteData);
+
+    return res.json(newNoteData); // Send the updated list of notes after deletion
+  } catch (error) {
+    console.error("Error deleting note:", error);
+    return res.status(500).json({ error: "Failed to delete note" });
+  }
 });
 
 module.exports = router;
