@@ -1,24 +1,33 @@
 const router = require('express').Router();
-const {createNewNote, updateDb} = require("../../lib/notes");
+const { createNewNote, updateDb } = require("../../lib/notes");
 const { v4: uuidv4 } = require('uuid');
-const {notes} = require("../../db/db.json");
+const { notes } = require("../../db/db.json");
 
-// show all notes in json data
+// Show all notes in JSON data
 router.get("/notes", (req, res) => {
     let results = notes;
     res.json(results);
-  });
+});
 
-  router.post("/notes", (req, res) => {
+// Create a new note
+router.post("/notes", (req, res) => {
     req.body.id = uuidv4();
     const newNote = createNewNote(req.body, notes);
     res.json(newNote);
-  });  
+});
 
-  router.delete("/notes/:id" , (req, res) => {
-    const params = req.params.id
-    updateDb(params, notes);
-    res.redirect('');
-  });
+// Delete a note by ID
+router.delete("/notes/:id", (req, res) => {
+    const id = req.params.id;
+    const noteIndex = notes.findIndex(note => note.id === id);
 
-  module.exports = router;
+    if (noteIndex !== -1) {
+        notes.splice(noteIndex, 1);
+        updateDb(notes);
+        res.sendStatus(204);  // No Content
+    } else {
+        res.status(404).json({ error: "Note not found" });
+    }
+});
+
+module.exports = router;
