@@ -14,12 +14,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Route to serve the notes page
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'notes.html'));
-});
-
-// Route to serve the homepage
-app.get('*', (req, res) => {
+app.get('/notes', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'notes.html'));
 });
 
@@ -53,11 +48,34 @@ app.post('/api/notes', (req, res) => {
 
     fs.writeFileSync(notesFilePath, JSON.stringify(notes, null, 2));
 
-    res.json(newNote); // Respond with the newly created note
+    res.status(201).json(newNote); // Respond with the newly created note
   } catch (error) {
     console.error('Error saving new note:', error);
     res.status(500).json({ error: 'Failed to save new note' });
   }
+});
+
+// Route to delete a note by ID
+app.delete('/api/notes/:id', (req, res) => {
+  try {
+    const noteToDelete = req.params.id;
+    const notesData = fs.readFileSync(notesFilePath, 'utf8');
+    let notes = JSON.parse(notesData);
+
+    notes = notes.filter(note => note.id !== noteToDelete);
+
+    fs.writeFileSync(notesFilePath, JSON.stringify(notes, null, 2));
+
+    res.json({ message: 'Note deleted successfully' }); // Respond with a success message
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).json({ error: 'Failed to delete note' });
+  }
+});
+
+// Catch-all route to serve the homepage for any unmatched routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start the server
