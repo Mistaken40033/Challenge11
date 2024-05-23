@@ -25,8 +25,8 @@ This project is licensed under the None license.
 none
 
 ## Tests
-node test
+open the terminal, type "node server.js", click on the "App Listening at http://localhost:3001" link
 
 ## Questions
-For additional questions, contact [@](https://github.com/) or email: ericab40033@hotmail.com
+For additional questions, contact [@mistaken40033](https://github.com/mistaken40033) or email: ericab40033@hotmail.com
     
