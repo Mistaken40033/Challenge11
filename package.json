@@ -1,23 +1,14 @@
 {
   "name": "note-taker",
   "version": "1.0.0",
+  "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.19.2",
-    "i": "^0.3.7",
-    "install": "^0.13.0",
-    "uuid": "^9.0.1"
-  },
-  "keywords": [],
-  "description": "Mistaken40033/Challenge11",
-  "directories": {
-    "lib": "lib"
-  },
-  "devDependencies": {}
+    "express": "^4.16.4"
+  }
 }
